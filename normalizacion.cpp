@@ -14,9 +14,9 @@ struct ComandaHistorica {
 };
 
 struct Mozo {
-    int idMozo;
-    char nombre[50];
-    char password[20];
+    int codigo;
+    char nombreMozo[50];
+    char contrasenia[20];
     float totalComision;
 };
 
@@ -24,18 +24,18 @@ struct Mozo {
 int archivoMozos();
 
 int main() {
-    //archivoMozos();
+    archivoMozos();
 
     return 0;
 }
 
 
-void encriptado(char password[]) {
+void encriptado(char contrasenia[]) {
     // Hace un shift de +5 (osea K = 5), '\0' es el final de una cadena de chars.
     // Recordar que la suma entre un char y un int hace casting a char pero la suma
     // es igual a una suma de ints.
-    for (int i = 0; password[i] != '\0'; i++) {
-        password[i] += 5;
+    for (int i = 0; contrasenia[i] != '\0'; i++) {
+        contrasenia[i] += 5;
     }
 }
 
@@ -99,7 +99,7 @@ int arrayMozos(Mozo mozos[]) {
 
         while (i < lenMozos && pos == -1) {
             // strcmp, si no compara las direcciones de memoria (libreria standard).
-            if (strcmp(mozos[i].nombre, ch.nombreMozo) == 0) {
+            if (strcmp(mozos[i].nombreMozo, ch.nombreMozo) == 0) {
                 pos = i;
             }
 
@@ -108,12 +108,12 @@ int arrayMozos(Mozo mozos[]) {
 
         if (pos == -1) {
             pos = lenMozos;
-            strcpy(mozos[pos].nombre, ch.nombreMozo);
-            mozos[pos].idMozo = lenMozos;
+            strcpy(mozos[pos].nombreMozo, ch.nombreMozo);
+            mozos[pos].codigo = lenMozos;
             mozos[pos].totalComision = 0;
 
-            intAChar(mozos[pos].idMozo, mozos[pos].password);
-            encriptado(mozos[pos].password);
+            intAChar(mozos[pos].codigo, mozos[pos].contrasenia);
+            encriptado(mozos[pos].contrasenia);
 
             lenMozos++;
         }
@@ -138,9 +138,9 @@ int archivoMozos() {
 
     //for (int i = 0; i < lenMozos; i++) {
     //    printf("Mozo %d\n", i);
-    //    printf("ID: %d\n", mozos[i].idMozo);
-    //    printf("Nombre: %s\n", mozos[i].nombre);
-    //    printf("Password encriptada: %s\n", mozos[i].password);
+    //    printf("ID: %d\n", mozos[i].codigo);
+    //    printf("Nombre: %s\n", mozos[i].nombreMozo);
+    //    printf("Contrasenia encriptada: %s\n", mozos[i].contrasenia);
     //    printf("Comision total: %.2f\n", mozos[i].totalComision);
     //    printf("-------------------------\n");
     //}
