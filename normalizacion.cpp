@@ -14,6 +14,14 @@ struct ComandaHistorica {
     float comision;
 };
 
+struct Producto {
+    int codigo;
+    char descripcion[50];
+    float precio;
+    int stockActual;
+};
+
+
 // -- propios --
 struct Mozo {
     int codigo;
@@ -37,7 +45,7 @@ int arrayComandas(Comanda comandas[], Mozo mozos[], int lenMozos);
 int archivoMozos();
 int archivosComandas(Comanda comandas[], int lenComandas);
 void ordenamientoBurbuja(Comanda comandas[], int lenComandas);
-void imprimir(Mozo mozos[], int lenMozos, Comanda comandas[], int lenComandas);
+bool prunarInventario(Comanda comandas[], int lenComandas);
 
 int main() {
     Mozo mozos[100];
@@ -57,8 +65,13 @@ int main() {
     ordenamientoBurbuja(comandas, lenComandas);
     archivosComandas(comandas, lenComandas);
 
-    // TODO:
-    // 1. inventario.dat -- Para prunar/actualizar
+    bool resultado = prunarInventario(comandas, lenComandas);
+
+    if (!resultado) {
+        printf("\n No se puede actualizar inventario.dat debido a que una comanda es mayor al inventario disponible. \n");
+
+        return 1;
+    }
 
     return 0;
 }
@@ -278,4 +291,35 @@ int archivosComandas(Comanda comandas[], int lenComandas) {
     }
 
     return archivos;
+}
+
+bool prunarInventario(Comanda comandas[], int lenComandas) {
+    FILE *f = fopen("../datos/inventario.dat", "r+b");
+    Producto prod;
+
+    if (f == nullptr) {
+        return false;
+    }
+
+
+    while (fread(&prod, sizeof(Producto), 1, f) == 1) {
+        for (int i = 0; i < lenComandas; i++) {
+            if (prod.codigo == comandas[i].codProd) {
+                if (prod.stockActual >= comandas[i].cant) {
+                    prod.stockActual -= comandas[i].cant;
+
+                    fseek(f, -(long) sizeof(Producto), SEEK_CUR);
+                    fwrite(&prod, sizeof(Producto), 1, f);
+
+                    fseek(f, 0, SEEK_CUR);
+                } else {
+                    fclose(f);
+
+                    return false;
+                }
+            }
+        }
+    }
+
+    fclose(f); return true;
 }
