@@ -301,22 +301,27 @@ bool prunarInventario(Comanda comandas[], int lenComandas) {
         return false;
     }
 
-
     while (fread(&prod, sizeof(Producto), 1, f) == 1) {
+        int aRestar = 0;
+
         for (int i = 0; i < lenComandas; i++) {
             if (prod.codigo == comandas[i].codProd) {
-                if (prod.stockActual >= comandas[i].cant) {
-                    prod.stockActual -= comandas[i].cant;
+                aRestar += comandas[i].cant;
+            }
+        }
 
-                    fseek(f, -(long) sizeof(Producto), SEEK_CUR);
-                    fwrite(&prod, sizeof(Producto), 1, f);
+        if (aRestar > 0) {
+            if (prod.stockActual >= aRestar) {
+                prod.stockActual -= aRestar;
 
-                    fseek(f, 0, SEEK_CUR);
-                } else {
-                    fclose(f);
+                fseek(f, -(long) sizeof(Producto), SEEK_CUR);
+                fwrite(&prod, sizeof(Producto), 1, f);
 
-                    return false;
-                }
+                fseek(f, 0, SEEK_CUR);
+            } else {
+                fclose(f);
+
+                return false;
             }
         }
     }
