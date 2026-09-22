@@ -32,18 +32,49 @@ struct Comanda {
 
 
 
+int arrayMozos(Mozo mozos[]);
+int arrayComandas(Comanda comandas[], Mozo mozos[], int lenMozos);
 int archivoMozos();
+int archivosComandas(Comanda comandas[], int lenComandas);
+void ordenamientoBurbuja(Comanda comandas[], int lenComandas);
+void imprimir(Mozo mozos[], int lenMozos, Comanda comandas[], int lenComandas);
 
 int main() {
+    Mozo mozos[100];
+    Comanda comandas[500];
+
+    int lenMozos = arrayMozos(mozos);
+
+    if (lenMozos < 0) {
+        printf("\n Fallo al generar mozos.dat, no se puede leer comandas_historicas.dat \n");
+
+        return 1;
+    }
+
+    int lenComandas = arrayComandas(comandas, mozos, lenMozos);
+
     archivoMozos();
+    ordenamientoBurbuja(comandas, lenComandas);
+    archivosComandas(comandas, lenComandas);
 
     // TODO:
-    // 1. comandas_dd-mm-aaaa.dat (varios) -- struct Comanda { int idMozo; int codigoProducto; int cantidad; float comision; };
-    // 2. inventario.dat -- Para prunar/actualizar
+    // 1. inventario.dat -- Para prunar/actualizar
 
     return 0;
 }
 
+
+void ordenamientoBurbuja(Comanda comandas[], int lenComandas) {
+    for (int i = 0; i < lenComandas - 1; i++) {
+        for (int j = 0; j < lenComandas - 1 - i; j++) {
+            if (comandas[j].codMozo > comandas[j + 1].codMozo) {
+                Comanda aux = comandas[j];
+                comandas[j] = comandas[j + 1];
+                comandas[j + 1] = aux;
+            }
+        }
+    }
+}
 
 void encriptado(char contrasenia[]) {
     // Hace un shift de +5 (osea K = 5), '\0' es el final de una cadena de chars.
@@ -53,7 +84,6 @@ void encriptado(char contrasenia[]) {
         contrasenia[i] += 5;
     }
 }
-
 void intAChar(int numero, char texto[]) {
     int i = 0;
 
@@ -138,7 +168,6 @@ int arrayMozos(Mozo mozos[]) {
 
     fclose(f); return lenMozos;
 }
-
 int arrayComandas(Comanda comandas[], Mozo mozos[], int lenMozos) {
     FILE *f = fopen("../datos/comandas_historicas.dat", "rb");
     ComandaHistorica ch;
@@ -150,7 +179,6 @@ int arrayComandas(Comanda comandas[], Mozo mozos[], int lenMozos) {
     }
 
     while (fread(&ch, sizeof(ComandaHistorica), 1, f) == 1) {
-        // Buscamos el codigo del mozo por nombre, igual que en arrayMozos.
         int pos = -1;
         int i = 0;
 
@@ -162,7 +190,6 @@ int arrayComandas(Comanda comandas[], Mozo mozos[], int lenMozos) {
             i++;
         }
 
-        // Si el nombre no esta en el array de mozos, salteamos la comanda.
         if (pos != -1) {
             strcpy(comandas[lenComandas].fecha, ch.fecha);
             comandas[lenComandas].codMozo = mozos[pos].codigo;
@@ -211,10 +238,44 @@ int archivoMozos() {
 
     return lenMozos;
 }
+int archivosComandas(Comanda comandas[], int lenComandas) {
+    int archivos = 0;
 
-int archivosComandas() {
-    // TODO
+    for (int i = 0; i < lenComandas; i++) {
+        int pos = -1;
+        int j = 0;
 
+        while (j < i && pos == -1) {
+            if (strcmp(comandas[j].fecha, comandas[i].fecha) == 0) {
+                pos = j;
+            }
 
-    return 0;
+            j++;
+        }
+
+        if (pos == -1) {
+            char nombre[40];
+            sprintf(nombre, "../datos/comandas_%s.dat", comandas[i].fecha);
+
+            FILE *f = fopen(nombre, "wb");
+
+            if (f == nullptr) {
+                return -1;
+            }
+
+            for (int k = i; k < lenComandas; k++) {
+                if (strcmp(comandas[k].fecha, comandas[i].fecha) == 0) {
+                    fwrite(&comandas[k], sizeof(Comanda), 1, f);
+                }
+            }
+
+            if (fclose(f) != 0) {
+                return -1;
+            }
+
+            archivos++;
+        }
+    }
+
+    return archivos;
 }
