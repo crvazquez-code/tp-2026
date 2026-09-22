@@ -7,3 +7,5 @@
 build/
 /*.dat
 .claude/
+.idea/
+cmake-build-*/
