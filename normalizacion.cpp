@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 
+// -- por defecto --
 struct ComandaHistorica {
     char fecha[11]; // "DD-MM-AAAA"
     char nombreMozo[50]; // el nombre completo, repetido en cada venta
@@ -13,6 +14,7 @@ struct ComandaHistorica {
     float comision;
 };
 
+// -- propios --
 struct Mozo {
     int codigo;
     char nombreMozo[50];
@@ -20,11 +22,24 @@ struct Mozo {
     float totalComision;
 };
 
+struct Comanda {
+    char fecha[11];
+    int codMozo;
+    int codProd;
+    int cant;
+    float comision;
+};
+
+
 
 int archivoMozos();
 
 int main() {
     archivoMozos();
+
+    // TODO:
+    // 1. comandas_dd-mm-aaaa.dat (varios) -- struct Comanda { int idMozo; int codigoProducto; int cantidad; float comision; };
+    // 2. inventario.dat -- Para prunar/actualizar
 
     return 0;
 }
@@ -124,6 +139,43 @@ int arrayMozos(Mozo mozos[]) {
     fclose(f); return lenMozos;
 }
 
+int arrayComandas(Comanda comandas[], Mozo mozos[], int lenMozos) {
+    FILE *f = fopen("../datos/comandas_historicas.dat", "rb");
+    ComandaHistorica ch;
+
+    int lenComandas = 0;
+
+    if (f == nullptr) {
+        return -1;
+    }
+
+    while (fread(&ch, sizeof(ComandaHistorica), 1, f) == 1) {
+        // Buscamos el codigo del mozo por nombre, igual que en arrayMozos.
+        int pos = -1;
+        int i = 0;
+
+        while (i < lenMozos && pos == -1) {
+            if (strcmp(mozos[i].nombreMozo, ch.nombreMozo) == 0) {
+                pos = i;
+            }
+
+            i++;
+        }
+
+        // Si el nombre no esta en el array de mozos, salteamos la comanda.
+        if (pos != -1) {
+            strcpy(comandas[lenComandas].fecha, ch.fecha);
+            comandas[lenComandas].codMozo = mozos[pos].codigo;
+            comandas[lenComandas].comision = ch.comision;
+            comandas[lenComandas].cant = ch.cantidad;
+            comandas[lenComandas].codProd = ch.codigoProducto;
+
+            lenComandas++;
+        }
+    }
+
+    fclose(f); return lenComandas;
+}
 
 int archivoMozos() {
     Mozo mozos[100];
@@ -133,12 +185,11 @@ int archivoMozos() {
         return -1;
     }
 
-    // Mostrar los mozos
     //printf("\n===== MOZOS =====\n");
 
     //for (int i = 0; i < lenMozos; i++) {
     //    printf("Mozo %d\n", i);
-    //    printf("ID: %d\n", mozos[i].codigo);
+    //    printf("Codigo: %d\n", mozos[i].codigo);
     //    printf("Nombre: %s\n", mozos[i].nombreMozo);
     //    printf("Contrasenia encriptada: %s\n", mozos[i].contrasenia);
     //    printf("Comision total: %.2f\n", mozos[i].totalComision);
@@ -153,6 +204,7 @@ int archivoMozos() {
 
     int escritos = fwrite(mozos, sizeof(Mozo), lenMozos, f);
     int errorCierre = fclose(f);
+
     if (escritos != lenMozos || errorCierre != 0) {
         return -1;
     }
@@ -160,3 +212,9 @@ int archivoMozos() {
     return lenMozos;
 }
 
+int archivosComandas() {
+    // TODO
+
+
+    return 0;
+}
