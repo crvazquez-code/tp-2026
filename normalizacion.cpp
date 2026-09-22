@@ -5,6 +5,15 @@
 #include <stdio.h>
 #include <string.h>
 
+// El directorio de los .dat, si viven en la raiz, hay que cambiarlos a la raiz.
+#define RUTA_DATOS "../datos/"
+
+// La verdad desconozco ahora cuanto va a medir los datos que use la catedra
+// Si no, actualizar estos.
+#define MAX_MOZOS 100
+#define MAX_COMANDAS 500
+
+
 // -- por defecto --
 struct ComandaHistorica {
     char fecha[11]; // "DD-MM-AAAA"
@@ -42,14 +51,14 @@ struct Comanda {
 
 int arrayMozos(Mozo mozos[]);
 int arrayComandas(Comanda comandas[], Mozo mozos[], int lenMozos);
-int archivoMozos();
+int archivoMozos(Mozo mozos[], int lenMozos);
 int archivosComandas(Comanda comandas[], int lenComandas);
 void ordenamientoBurbuja(Comanda comandas[], int lenComandas);
-bool prunarInventario(Comanda comandas[], int lenComandas);
+int prunarInventario(Comanda comandas[], int lenComandas);
 
 int main() {
-    Mozo mozos[100];
-    Comanda comandas[500];
+    Mozo mozos[MAX_MOZOS];
+    Comanda comandas[MAX_COMANDAS];
 
     int lenMozos = arrayMozos(mozos);
 
@@ -61,13 +70,35 @@ int main() {
 
     int lenComandas = arrayComandas(comandas, mozos, lenMozos);
 
-    archivoMozos();
+    if (lenComandas < 0) {
+        printf("\n Fallo al armar las comandas, no se puede leer comandas_historicas.dat \n");
+
+        return 1;
+    }
+
+    if (archivoMozos(mozos, lenMozos) < 0) {
+        printf("\n Fallo al escribir mozos.dat \n");
+
+        return 1;
+    }
+
     ordenamientoBurbuja(comandas, lenComandas);
-    archivosComandas(comandas, lenComandas);
 
-    bool resultado = prunarInventario(comandas, lenComandas);
+    if (archivosComandas(comandas, lenComandas) < 0) {
+        printf("\n Fallo al escribir las planillas comandas_dd-mm-aaaa.dat \n");
 
-    if (!resultado) {
+        return 1;
+    }
+
+    int resultado = prunarInventario(comandas, lenComandas);
+
+    if (resultado < 0) {
+        printf("\n No se puede actualizar inventario.dat, no se pudo abrir el archivo \n");
+
+        return 1;
+    }
+
+    if (resultado == 0) {
         printf("\n No se puede actualizar inventario.dat debido a que una comanda es mayor al inventario disponible. \n");
 
         return 1;
@@ -142,7 +173,7 @@ void intAChar(int numero, char texto[]) {
 }
 
 int arrayMozos(Mozo mozos[]) {
-    FILE *f = fopen("../datos/comandas_historicas.dat", "rb");
+    FILE *f = fopen(RUTA_DATOS "comandas_historicas.dat", "rb");
     ComandaHistorica ch;
 
     int lenMozos = 0;
@@ -182,7 +213,7 @@ int arrayMozos(Mozo mozos[]) {
     fclose(f); return lenMozos;
 }
 int arrayComandas(Comanda comandas[], Mozo mozos[], int lenMozos) {
-    FILE *f = fopen("../datos/comandas_historicas.dat", "rb");
+    FILE *f = fopen(RUTA_DATOS "comandas_historicas.dat", "rb");
     ComandaHistorica ch;
 
     int lenComandas = 0;
@@ -217,13 +248,7 @@ int arrayComandas(Comanda comandas[], Mozo mozos[], int lenMozos) {
     fclose(f); return lenComandas;
 }
 
-int archivoMozos() {
-    Mozo mozos[100];
-    int lenMozos = arrayMozos(mozos);
-
-    if (lenMozos < 0) {
-        return -1;
-    }
+int archivoMozos(Mozo mozos[], int lenMozos) {
 
     //printf("\n===== MOZOS =====\n");
 
@@ -237,7 +262,7 @@ int archivoMozos() {
     //}
 
 
-    FILE *f = fopen("../datos/mozos.dat", "wb");
+    FILE *f = fopen(RUTA_DATOS "mozos.dat", "wb");
     if (f == nullptr) {
         return -1;
     }
@@ -268,7 +293,7 @@ int archivosComandas(Comanda comandas[], int lenComandas) {
 
         if (pos == -1) {
             char nombre[40];
-            sprintf(nombre, "../datos/comandas_%s.dat", comandas[i].fecha);
+            sprintf(nombre, RUTA_DATOS "comandas_%s.dat", comandas[i].fecha);
 
             FILE *f = fopen(nombre, "wb");
 
@@ -293,12 +318,12 @@ int archivosComandas(Comanda comandas[], int lenComandas) {
     return archivos;
 }
 
-bool prunarInventario(Comanda comandas[], int lenComandas) {
-    FILE *f = fopen("../datos/inventario.dat", "r+b");
+int prunarInventario(Comanda comandas[], int lenComandas) {
+    FILE *f = fopen(RUTA_DATOS "inventario.dat", "r+b");
     Producto prod;
 
     if (f == nullptr) {
-        return false;
+        return -1;
     }
 
     while (fread(&prod, sizeof(Producto), 1, f) == 1) {
@@ -321,10 +346,10 @@ bool prunarInventario(Comanda comandas[], int lenComandas) {
             } else {
                 fclose(f);
 
-                return false;
+                return 0;
             }
         }
     }
 
-    fclose(f); return true;
+    fclose(f); return 1;
 }
