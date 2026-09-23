@@ -1,5 +1,4 @@
 
-// Lo guarda in place, no retorna.
 void intAChar(int numero, char texto[]) {
     int i = 0;
 

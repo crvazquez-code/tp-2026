@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "funciones/funciones.cpp"
 
 #define RUTA_DATOS "../datos/"
 #define MAX_MOZOS 100
@@ -193,12 +194,14 @@ int archivoMozos(Mozo mozos[], int lenMozos) {
     return lenMozos;
 }
 
-// Crea archivos usando corte de control por fecha.
+// Crea archivos usando corte de control por fecha, los ordena antes de escribir.
 int archivosComandas(Comanda comandas[], int lenComandas) {
     int i = 0;
 
     while (i < lenComandas) {
         char *control = comandas[i].fecha;
+        Comanda dia[MAX_COMANDAS];
+        int lenDia = 0;
 
         char nombre[40];
         sprintf(nombre, RUTA_DATOS "comandas_%s.dat", control);
@@ -210,9 +213,13 @@ int archivosComandas(Comanda comandas[], int lenComandas) {
         }
 
         while (i < lenComandas && strcmp(comandas[i].fecha, control) == 0) {
-            fwrite(&comandas[i], sizeof(Comanda), 1, f);
+            dia[lenDia] = comandas[i];
+            lenDia++;
             i++;
         }
+
+        ordBurbujaGenerico(dia, lenDia, [](const Comanda &c) { return c.codMozo; });
+        fwrite(dia, sizeof(Comanda), lenDia, f);
 
         if (fclose(f) != 0) {
             return -1;
