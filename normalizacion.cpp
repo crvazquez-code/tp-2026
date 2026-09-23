@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "funciones/funciones.cpp"
+#include "funciones/utilidades_encriptacion.cpp"
 
 #define RUTA_DATOS "../datos/"
 #define MAX_MOZOS 100
@@ -42,10 +43,6 @@ struct Comanda {
     float comision;
 };
 
-// funciones/utils.cpp
-void intAChar(int numero, char texto[]);
-void encriptado(char contrasenia[]);
-
 int archivoMozos(Mozo mozos[], int lenMozos);
 void nombresAgrupados(ComandaHistorica array[], int len);
 int llenarArrayComandas(ComandaHistorica comandas[]);
@@ -53,6 +50,7 @@ void arrayMozos(ComandaHistorica array[], int len, Mozo arrayMozo[], int &lenMoz
 void arrayComandas(ComandaHistorica array[], int len, Mozo mozos[], int lenMozos, Comanda arrayComanda[]);
 void agruparPorFecha(ComandaHistorica array[], int len);
 int archivosComandas(Comanda comandas[], int lenComandas);
+int prunarInventario(Comanda comandas[], int lenComandas);
 int main() {
     ComandaHistorica comandas[MAX_COMANDAS];
     Mozo mozos[MAX_MOZOS];
@@ -80,6 +78,20 @@ int main() {
 
     if (archivosComandas(comandasNuevas, lenComandas) < 0) {
         printf("\n Fallo al escribir los archivos de comandas por dia \n");
+
+        return 1;
+    }
+
+    int resultado = prunarInventario(comandasNuevas, lenComandas);
+
+    if (resultado < 0) {
+        printf("\n No se puede actualizar inventario.dat, no se pudo abrir el archivo \n");
+
+        return 1;
+    }
+
+    if (resultado == 0) {
+        printf("\n No se puede actualizar inventario.dat debido a que una comanda es mayor al inventario disponible. \n");
 
         return 1;
     }
@@ -229,5 +241,40 @@ int archivosComandas(Comanda comandas[], int lenComandas) {
     return 0;
 }
 
+int prunarInventario(Comanda comandas[], int lenComandas) {
+    FILE *f = fopen(RUTA_DATOS "inventario.dat", "r+b");
+    Producto prod;
+
+    if (f == nullptr) {
+        return -1;
+    }
+
+    while (fread(&prod, sizeof(Producto), 1, f) == 1) {
+        int aRestar = 0;
+
+        for (int i = 0; i < lenComandas; i++) {
+            if (prod.codigo == comandas[i].codProd) {
+                aRestar += comandas[i].cant;
+            }
+        }
+
+        if (aRestar > 0) {
+            if (prod.stockActual >= aRestar) {
+                prod.stockActual -= aRestar;
+
+                fseek(f, -(long) sizeof(Producto), SEEK_CUR);
+                fwrite(&prod, sizeof(Producto), 1, f);
+
+                fseek(f, 0, SEEK_CUR);
+            } else {
+                fclose(f);
+
+                return 0;
+            }
+        }
+    }
+
+    fclose(f); return 1;
+}
 
 
