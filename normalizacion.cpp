@@ -45,13 +45,18 @@ struct Comanda {
 void intAChar(int numero, char texto[]);
 void encriptado(char contrasenia[]);
 
+int archivoMozos(Mozo mozos[], int lenMozos);
 void nombresAgrupados(ComandaHistorica array[], int len);
 int llenarArrayComandas(ComandaHistorica comandas[]);
 void arrayMozos(ComandaHistorica array[], int len, Mozo arrayMozo[], int &lenMozos);
+void arrayComandas(ComandaHistorica array[], int len, Mozo mozos[], int lenMozos, Comanda arrayComanda[]);
+void agruparPorFecha(ComandaHistorica array[], int len);
+int archivosComandas(Comanda comandas[], int lenComandas);
 int main() {
     ComandaHistorica comandas[MAX_COMANDAS];
     Mozo mozos[MAX_MOZOS];
     int lenMozos;
+    Comanda comandasNuevas[MAX_COMANDAS];
 
     int lenComandas = llenarArrayComandas(comandas);
     if (lenComandas < 0) {
@@ -63,9 +68,38 @@ int main() {
     nombresAgrupados(comandas, lenComandas);
     arrayMozos(comandas, lenComandas, mozos, lenMozos);
 
+    if (archivoMozos(mozos, lenMozos) < 0) {
+        printf("\n Fallo al escribir mozos.dat \n");
+
+        return 1;
+    }
+
+    agruparPorFecha(comandas, lenComandas);
+    arrayComandas(comandas, lenComandas, mozos, lenMozos, comandasNuevas);
+
+    if (archivosComandas(comandasNuevas, lenComandas) < 0) {
+        printf("\n Fallo al escribir los archivos de comandas por dia \n");
+
+        return 1;
+    }
+
     return 0;
 }
 
+// agrupar por fecha.
+void agruparPorFecha(ComandaHistorica array[], int len) {
+    for (int i = 0; i < len; i++) {
+        for (int j = i + 1; j < len; j++) {
+            if (strcmp(array[i].fecha, array[j].fecha) == 0) {
+                i++;
+
+                ComandaHistorica temp = array[i];
+                array[i] = array[j];
+                array[j] = temp;
+            }
+        }
+    }
+}
 
 // Agrupar por nombre.
 void nombresAgrupados(ComandaHistorica array[], int len) {
@@ -98,7 +132,7 @@ int llenarArrayComandas(ComandaHistorica comandas[]) {
     fclose(f); return len;
 }
 
-// Corte de control para crear el array de mozos.
+// Corte de control por nombre para crear el array de mozos.
 void arrayMozos(ComandaHistorica array[], int len, Mozo arrayMozo[], int &lenMozos) {
     lenMozos = 0;
     int i = 0;
@@ -118,7 +152,75 @@ void arrayMozos(ComandaHistorica array[], int len, Mozo arrayMozo[], int &lenMoz
 
         intAChar(arrayMozo[lenMozos].codigo, arrayMozo[lenMozos].contrasenia);
         encriptado(arrayMozo[lenMozos].contrasenia);
-        
+
         lenMozos++;
     }
 }
+
+// Pasa cada ComandaHistorica a Comanda.
+void arrayComandas(ComandaHistorica array[], int len, Mozo mozos[], int lenMozos, Comanda arrayComanda[]) {
+    for (int i = 0; i < len; i++) {
+
+        int j = 0;
+        while (j < lenMozos && strcmp(mozos[j].nombreMozo, array[i].nombreMozo) != 0) {
+            j++;
+        }
+
+        strcpy(arrayComanda[i].fecha, array[i].fecha);
+        arrayComanda[i].codMozo = mozos[j].codigo;
+        arrayComanda[i].codProd = array[i].codigoProducto;
+        arrayComanda[i].cant = array[i].cantidad;
+        arrayComanda[i].comision = array[i].comision;
+    }
+}
+
+// crea el archivo mozos.dat final.
+int archivoMozos(Mozo mozos[], int lenMozos) {
+
+    FILE *f = fopen(RUTA_DATOS "mozos.dat", "wb");
+
+    if (f == nullptr) {
+        return -1;
+    }
+
+    int escritos = fwrite(mozos, sizeof(Mozo), lenMozos, f);
+    int errorCierre = fclose(f);
+
+    if (escritos != lenMozos || errorCierre != 0) {
+        return -1;
+    }
+
+    return lenMozos;
+}
+
+// Crea archivos usando corte de control por fecha.
+int archivosComandas(Comanda comandas[], int lenComandas) {
+    int i = 0;
+
+    while (i < lenComandas) {
+        char *control = comandas[i].fecha;
+
+        char nombre[40];
+        sprintf(nombre, RUTA_DATOS "comandas_%s.dat", control);
+
+        FILE *f = fopen(nombre, "wb");
+
+        if (f == nullptr) {
+            return -1;
+        }
+
+        while (i < lenComandas && strcmp(comandas[i].fecha, control) == 0) {
+            fwrite(&comandas[i], sizeof(Comanda), 1, f);
+            i++;
+        }
+
+        if (fclose(f) != 0) {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+
+
