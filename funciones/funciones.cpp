@@ -45,9 +45,10 @@ void corteControlGenerico(T arr[], int lenA, ClaveCorte claveCorte, ValProcRegis
     while (i < lenA)
     {
         // busco el corte
+        int j = i;
         int corte = claveCorte(i, arr, lenA);
         auto estructura = valProcRegistro(arr, i, corte);
-        while (i < lenA && corte != claveCorte(j, arr, lenA))
+        while (i < lenA && corte != claveCorte(i, arr, lenA))
         {
             i++;
             // proceso el registro
@@ -66,7 +67,7 @@ void ordSeleccionGenerico(T arr[], int len, ClaveOrden claveOrden)
     for (int i = 0; i < len; i++)
     {
         auto claveMin = claveOrden(arr[i]);
-        for (j = i + 1; j < len; j++)
+        for (int j = i + 1; j < len; j++)
         {
             if (claveOrden(arr[j]) < claveMin)
             {
