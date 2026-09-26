@@ -4,15 +4,15 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "funciones/funciones.cpp"
-#include "funciones/utilidades_encriptacion.cpp"
+#include "../funciones/funciones.h"
 
-#define RUTA_DATOS "../datos/"
+#define RUTA_DATOS "../datos_de_uso/"
 #define MAX_MOZOS 100
 #define MAX_COMANDAS 500
 
 // -- por defecto --
-struct ComandaHistorica {
+struct ComandaHistorica
+{
     char fecha[11];
     char nombreMozo[50];
     int codigoProducto;
@@ -20,7 +20,8 @@ struct ComandaHistorica {
     float comision;
 };
 
-struct Producto {
+struct Producto
+{
     int codigo;
     char descripcion[50];
     float precio;
@@ -28,14 +29,16 @@ struct Producto {
 };
 
 // -- propios --
-struct Mozo {
+struct Mozo
+{
     int codigo;
     char nombreMozo[50];
     char contrasenia[20];
     float totalComision;
 };
 
-struct Comanda {
+struct Comanda
+{
     char fecha[11];
     int codMozo;
     int codProd;
@@ -51,14 +54,16 @@ void arrayComandas(ComandaHistorica array[], int len, Mozo mozos[], int lenMozos
 void agruparPorFecha(ComandaHistorica array[], int len);
 int archivosComandas(Comanda comandas[], int lenComandas);
 int prunarInventario(Comanda comandas[], int lenComandas);
-int main() {
+int main()
+{
     ComandaHistorica comandas[MAX_COMANDAS];
     Mozo mozos[MAX_MOZOS];
     int lenMozos;
     Comanda comandasNuevas[MAX_COMANDAS];
 
     int lenComandas = llenarArrayComandas(comandas);
-    if (lenComandas < 0) {
+    if (lenComandas < 0)
+    {
         printf("\n Fallo al leer comandas_historicas.dat \n");
 
         return 1;
@@ -67,7 +72,8 @@ int main() {
     nombresAgrupados(comandas, lenComandas);
     arrayMozos(comandas, lenComandas, mozos, lenMozos);
 
-    if (archivoMozos(mozos, lenMozos) < 0) {
+    if (archivoMozos(mozos, lenMozos) < 0)
+    {
         printf("\n Fallo al escribir mozos.dat \n");
 
         return 1;
@@ -76,7 +82,8 @@ int main() {
     agruparPorFecha(comandas, lenComandas);
     arrayComandas(comandas, lenComandas, mozos, lenMozos, comandasNuevas);
 
-    if (archivosComandas(comandasNuevas, lenComandas) < 0) {
+    if (archivosComandas(comandasNuevas, lenComandas) < 0)
+    {
         printf("\n Fallo al escribir los archivos de comandas por dia \n");
 
         return 1;
@@ -84,13 +91,15 @@ int main() {
 
     int resultado = prunarInventario(comandasNuevas, lenComandas);
 
-    if (resultado < 0) {
+    if (resultado < 0)
+    {
         printf("\n No se puede actualizar inventario.dat, no se pudo abrir el archivo \n");
 
         return 1;
     }
 
-    if (resultado == 0) {
+    if (resultado == 0)
+    {
         printf("\n No se puede actualizar inventario.dat debido a que una comanda es mayor al inventario disponible. \n");
 
         return 1;
@@ -100,10 +109,14 @@ int main() {
 }
 
 // agrupar por fecha.
-void agruparPorFecha(ComandaHistorica array[], int len) {
-    for (int i = 0; i < len; i++) {
-        for (int j = i + 1; j < len; j++) {
-            if (strcmp(array[i].fecha, array[j].fecha) == 0) {
+void agruparPorFecha(ComandaHistorica array[], int len)
+{
+    for (int i = 0; i < len; i++)
+    {
+        for (int j = i + 1; j < len; j++)
+        {
+            if (strcmp(array[i].fecha, array[j].fecha) == 0)
+            {
                 i++;
 
                 ComandaHistorica temp = array[i];
@@ -115,10 +128,14 @@ void agruparPorFecha(ComandaHistorica array[], int len) {
 }
 
 // Agrupar por nombre.
-void nombresAgrupados(ComandaHistorica array[], int len) {
-    for (int i = 0; i < len; i++) {
-        for (int j = i + 1; j < len; j++) {
-            if (strcmp(array[i].nombreMozo, array[j].nombreMozo) == 0) {
+void nombresAgrupados(ComandaHistorica array[], int len)
+{
+    for (int i = 0; i < len; i++)
+    {
+        for (int j = i + 1; j < len; j++)
+        {
+            if (strcmp(array[i].nombreMozo, array[j].nombreMozo) == 0)
+            {
                 i++;
 
                 ComandaHistorica temp = array[i];
@@ -130,31 +147,38 @@ void nombresAgrupados(ComandaHistorica array[], int len) {
 }
 
 // Cargar el archivo comandas historicas en un array.
-int llenarArrayComandas(ComandaHistorica comandas[]) {
+int llenarArrayComandas(ComandaHistorica comandas[])
+{
     FILE *f = fopen(RUTA_DATOS "comandas_historicas.dat", "rb");
     int len = 0;
 
-    if (f == nullptr) {
+    if (f == nullptr)
+    {
         return -1;
     }
 
-    while (len < MAX_COMANDAS && fread(&comandas[len], sizeof(ComandaHistorica), 1, f) == 1) {
+    while (len < MAX_COMANDAS && fread(&comandas[len], sizeof(ComandaHistorica), 1, f) == 1)
+    {
         len++;
     }
 
-    fclose(f); return len;
+    fclose(f);
+    return len;
 }
 
 // Corte de control por nombre para crear el array de mozos.
-void arrayMozos(ComandaHistorica array[], int len, Mozo arrayMozo[], int &lenMozos) {
+void arrayMozos(ComandaHistorica array[], int len, Mozo arrayMozo[], int &lenMozos)
+{
     lenMozos = 0;
     int i = 0;
 
-    while (i < len) {
+    while (i < len)
+    {
         char *control = array[i].nombreMozo;
         float totalComision = 0;
 
-        while (i < len && strcmp(array[i].nombreMozo, control) == 0) {
+        while (i < len && strcmp(array[i].nombreMozo, control) == 0)
+        {
             totalComision += array[i].comision;
             i++;
         }
@@ -171,11 +195,14 @@ void arrayMozos(ComandaHistorica array[], int len, Mozo arrayMozo[], int &lenMoz
 }
 
 // Pasa cada ComandaHistorica a Comanda.
-void arrayComandas(ComandaHistorica array[], int len, Mozo mozos[], int lenMozos, Comanda arrayComanda[]) {
-    for (int i = 0; i < len; i++) {
+void arrayComandas(ComandaHistorica array[], int len, Mozo mozos[], int lenMozos, Comanda arrayComanda[])
+{
+    for (int i = 0; i < len; i++)
+    {
 
         int j = 0;
-        while (j < lenMozos && strcmp(mozos[j].nombreMozo, array[i].nombreMozo) != 0) {
+        while (j < lenMozos && strcmp(mozos[j].nombreMozo, array[i].nombreMozo) != 0)
+        {
             j++;
         }
 
@@ -188,18 +215,21 @@ void arrayComandas(ComandaHistorica array[], int len, Mozo mozos[], int lenMozos
 }
 
 // crea el archivo mozos.dat final.
-int archivoMozos(Mozo mozos[], int lenMozos) {
+int archivoMozos(Mozo mozos[], int lenMozos)
+{
 
     FILE *f = fopen(RUTA_DATOS "mozos.dat", "wb");
 
-    if (f == nullptr) {
+    if (f == nullptr)
+    {
         return -1;
     }
 
     int escritos = fwrite(mozos, sizeof(Mozo), lenMozos, f);
     int errorCierre = fclose(f);
 
-    if (escritos != lenMozos || errorCierre != 0) {
+    if (escritos != lenMozos || errorCierre != 0)
+    {
         return -1;
     }
 
@@ -207,10 +237,12 @@ int archivoMozos(Mozo mozos[], int lenMozos) {
 }
 
 // Crea archivos usando corte de control por fecha, los ordena antes de escribir.
-int archivosComandas(Comanda comandas[], int lenComandas) {
+int archivosComandas(Comanda comandas[], int lenComandas)
+{
     int i = 0;
 
-    while (i < lenComandas) {
+    while (i < lenComandas)
+    {
         char *control = comandas[i].fecha;
         Comanda dia[MAX_COMANDAS];
         int lenDia = 0;
@@ -220,20 +252,24 @@ int archivosComandas(Comanda comandas[], int lenComandas) {
 
         FILE *f = fopen(nombre, "wb");
 
-        if (f == nullptr) {
+        if (f == nullptr)
+        {
             return -1;
         }
 
-        while (i < lenComandas && strcmp(comandas[i].fecha, control) == 0) {
+        while (i < lenComandas && strcmp(comandas[i].fecha, control) == 0)
+        {
             dia[lenDia] = comandas[i];
             lenDia++;
             i++;
         }
 
-        ordBurbujaGenerico(dia, lenDia, [](const Comanda &c) { return c.codMozo; });
+        ordBurbujaGenerico(dia, lenDia, [](const Comanda &c)
+                           { return c.codMozo; });
         fwrite(dia, sizeof(Comanda), lenDia, f);
 
-        if (fclose(f) != 0) {
+        if (fclose(f) != 0)
+        {
             return -1;
         }
     }
@@ -241,32 +277,41 @@ int archivosComandas(Comanda comandas[], int lenComandas) {
     return 0;
 }
 
-int prunarInventario(Comanda comandas[], int lenComandas) {
+int prunarInventario(Comanda comandas[], int lenComandas)
+{
     FILE *f = fopen(RUTA_DATOS "inventario.dat", "r+b");
     Producto prod;
 
-    if (f == nullptr) {
+    if (f == nullptr)
+    {
         return -1;
     }
 
-    while (fread(&prod, sizeof(Producto), 1, f) == 1) {
+    while (fread(&prod, sizeof(Producto), 1, f) == 1)
+    {
         int aRestar = 0;
 
-        for (int i = 0; i < lenComandas; i++) {
-            if (prod.codigo == comandas[i].codProd) {
+        for (int i = 0; i < lenComandas; i++)
+        {
+            if (prod.codigo == comandas[i].codProd)
+            {
                 aRestar += comandas[i].cant;
             }
         }
 
-        if (aRestar > 0) {
-            if (prod.stockActual >= aRestar) {
+        if (aRestar > 0)
+        {
+            if (prod.stockActual >= aRestar)
+            {
                 prod.stockActual -= aRestar;
 
-                fseek(f, -(long) sizeof(Producto), SEEK_CUR);
+                fseek(f, -(long)sizeof(Producto), SEEK_CUR);
                 fwrite(&prod, sizeof(Producto), 1, f);
 
                 fseek(f, 0, SEEK_CUR);
-            } else {
+            }
+            else
+            {
                 fclose(f);
 
                 return 0;
@@ -274,7 +319,6 @@ int prunarInventario(Comanda comandas[], int lenComandas) {
         }
     }
 
-    fclose(f); return 1;
+    fclose(f);
+    return 1;
 }
-
-
