@@ -6,7 +6,9 @@
 #include <string.h>
 #include "../funciones/funciones.h"
 
-#define RUTA_DATOS "../datos_de_uso/"
+#define RUTA_INPUT "../datos_de_uso/"
+#define RUTA_OUTPUT "../datos/"
+
 #define MAX_MOZOS 100
 #define MAX_COMANDAS 500
 
@@ -149,7 +151,7 @@ void nombresAgrupados(ComandaHistorica array[], int len)
 // Cargar el archivo comandas historicas en un array.
 int llenarArrayComandas(ComandaHistorica comandas[])
 {
-    FILE *f = fopen(RUTA_DATOS "comandas_historicas.dat", "rb");
+    FILE *f = fopen(RUTA_INPUT "comandas_historicas.dat", "rb");
     int len = 0;
 
     if (f == nullptr)
@@ -218,7 +220,7 @@ void arrayComandas(ComandaHistorica array[], int len, Mozo mozos[], int lenMozos
 int archivoMozos(Mozo mozos[], int lenMozos)
 {
 
-    FILE *f = fopen(RUTA_DATOS "mozos.dat", "wb");
+    FILE *f = fopen(RUTA_OUTPUT "mozos.dat", "wb");
 
     if (f == nullptr)
     {
@@ -248,7 +250,7 @@ int archivosComandas(Comanda comandas[], int lenComandas)
         int lenDia = 0;
 
         char nombre[40];
-        sprintf(nombre, RUTA_DATOS "comandas_%s.dat", control);
+        sprintf(nombre, RUTA_OUTPUT "comandas_%s.dat", control);
 
         FILE *f = fopen(nombre, "wb");
 
@@ -279,7 +281,7 @@ int archivosComandas(Comanda comandas[], int lenComandas)
 
 int prunarInventario(Comanda comandas[], int lenComandas)
 {
-    FILE *f = fopen(RUTA_DATOS "inventario.dat", "r+b");
+    FILE *f = fopen(RUTA_INPUT "inventario.dat", "r+b");
     Producto prod;
 
     if (f == nullptr)
