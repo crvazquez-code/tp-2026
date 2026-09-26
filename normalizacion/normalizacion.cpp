@@ -33,7 +33,7 @@ struct Mozo
 {
     int codigo;
     char nombreMozo[50];
-    char contrasenia[20];
+    char password[20];
     float totalComision;
 };
 
