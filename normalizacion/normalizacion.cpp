@@ -187,8 +187,8 @@ void arrayMozos(ComandaHistorica array[], int len, Mozo arrayMozo[], int &lenMoz
         arrayMozo[lenMozos].totalComision = totalComision;
         arrayMozo[lenMozos].codigo = lenMozos + 1;
 
-        intAChar(arrayMozo[lenMozos].codigo, arrayMozo[lenMozos].contrasenia);
-        encriptado(arrayMozo[lenMozos].contrasenia);
+        intAChar(arrayMozo[lenMozos].codigo, arrayMozo[lenMozos].password);
+        encriptado(arrayMozo[lenMozos].password);
 
         lenMozos++;
     }
