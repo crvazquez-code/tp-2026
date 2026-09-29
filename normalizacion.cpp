@@ -4,10 +4,10 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "../funciones/funciones.h"
+#include "funciones/funciones.h"
 
-#define RUTA_INPUT "../datos/"
-#define RUTA_OUTPUT "../datos_de_uso/"
+#define RUTA_INPUT "./datos/"
+#define RUTA_OUTPUT "./datos_de_uso/"
 
 #define MAX_MOZOS 100
 #define MAX_COMANDAS 500
