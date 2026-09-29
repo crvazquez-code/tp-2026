@@ -28,8 +28,8 @@ struct Producto
 // -- Propios del sistema (acorde al enunciado) --
 struct Mozo
 {
-    int codigo;
-    char nombreMozo[50];
+    int idMozo;
+    char nombre[50];
     char password[20];
     float totalComision;
 };
@@ -37,9 +37,9 @@ struct Mozo
 // Se remueve la fecha según especificación del TP
 struct Comanda
 {
-    int codMozo;
-    int codProd;
-    int cant;
+    int idMozo;
+    int codigoProducto;
+    int cantidad;
     float comision;
 };
 

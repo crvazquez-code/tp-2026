@@ -153,9 +153,9 @@ void arrayMozos(ComandaHistorica array[], int len, Mozo arrayMozo[], int &lenMoz
             i++;
         }
 
-        strcpy(arrayMozo[lenMozos].nombreMozo, control);
+        strcpy(arrayMozo[lenMozos].nombre, control);
         arrayMozo[lenMozos].totalComision = totalComision;
-        arrayMozo[lenMozos].codigo = lenMozos + 1;
+        arrayMozo[lenMozos].idMozo = lenMozos + 1;
 
         // --- Generación del Password ---
         // 1. Obtener primeros 4 caracteres del nombre
@@ -186,14 +186,14 @@ void arrayComandas(ComandaHistorica array[], int len, Mozo mozos[], int lenMozos
     for (int i = 0; i < len; i++)
     {
         int j = 0;
-        while (j < lenMozos && strcmp(mozos[j].nombreMozo, array[i].nombreMozo) != 0)
+        while (j < lenMozos && strcmp(mozos[j].nombre, array[i].nombreMozo) != 0)
         {
             j++;
         }
 
-        arrayComanda[i].codMozo = mozos[j].codigo;
-        arrayComanda[i].codProd = array[i].codigoProducto;
-        arrayComanda[i].cant = array[i].cantidad;
+        arrayComanda[i].idMozo = mozos[j].idMozo;
+        arrayComanda[i].codigoProducto = array[i].codigoProducto;
+        arrayComanda[i].cantidad = array[i].cantidad;
         arrayComanda[i].comision = array[i].comision;
     }
 }
@@ -246,14 +246,14 @@ int archivosComandas(ComandaHistorica arrayHistorica[], int lenComandas, Mozo mo
         {
             // Buscar el ID del mozo por su nombre
             int j = 0;
-            while (j < lenMozos && strcmp(mozos[j].nombreMozo, arrayHistorica[i].nombreMozo) != 0)
+            while (j < lenMozos && strcmp(mozos[j].nombre, arrayHistorica[i].nombreMozo) != 0)
             {
                 j++;
             }
 
-            dia[lenDia].codMozo = mozos[j].codigo;
-            dia[lenDia].codProd = arrayHistorica[i].codigoProducto;
-            dia[lenDia].cant = arrayHistorica[i].cantidad;
+            dia[lenDia].idMozo = mozos[j].idMozo;
+            dia[lenDia].codigoProducto = arrayHistorica[i].codigoProducto;
+            dia[lenDia].cantidad = arrayHistorica[i].cantidad;
             dia[lenDia].comision = arrayHistorica[i].comision;
 
             lenDia++;
@@ -262,7 +262,7 @@ int archivosComandas(ComandaHistorica arrayHistorica[], int lenComandas, Mozo mo
 
         // Ordenar por codMozo antes de guardar
         ordBurbujaGenerico(dia, lenDia, [](const Comanda &c)
-                           { return c.codMozo; });
+                           { return c.idMozo; });
 
         fwrite(dia, sizeof(Comanda), lenDia, f);
 
@@ -302,9 +302,9 @@ int prunarInventario(Comanda comandas[], int lenComandas)
         // Sumamos todas las ventas asociadas a este producto
         for (int i = 0; i < lenComandas; i++)
         {
-            if (prod.codigo == comandas[i].codProd)
+            if (prod.codigo == comandas[i].idMozo)
             {
-                totalVendido += comandas[i].cant;
+                totalVendido += comandas[i].cantidad;
             }
         }
 
