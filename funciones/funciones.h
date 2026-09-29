@@ -4,6 +4,8 @@
 #include <cstdio>
 #include <string>
 
+using namespace std;
+
 // =========== APAREO ===========
 template <typename T1, typename T2, typename TOut, typename Comp>
 void apareoGenerico(T1 arrA[], int lenA, T2 arrB[], int lenB, TOut arrC[], int &lenC, Comp comp)
@@ -174,7 +176,7 @@ int busquedaBinariaGenerico(T arr[], int len, ClaveBusqueda claveBusqueda, Compa
 // ====== ARCHIVOS ======
 
 template <typename T>
-long obtenerCantidadRegistros(std::string nombreArchivo)
+long obtenerCantidadRegistros(string nombreArchivo)
 {
     FILE *f = fopen(nombreArchivo.c_str(), "rb"); // Modo lectura binaria
     if (f == NULL)
@@ -190,28 +192,23 @@ long obtenerCantidadRegistros(std::string nombreArchivo)
 }
 
 template <typename T>
-T *leerArchivoGenerico(std::string nombreArchivo)
+T *leerArchivoGenerico(string nombreArchivo, int largoArchivo)
 {
-    FILE *archivo = std::fopen(nombreArchivo.c_str(), "rb");
+    FILE *archivo = fopen(nombreArchivo.c_str(), "rb");
 
     if (archivo == NULL)
     {
-        std::cout << "[Warn]: No se encontro un archivo" << std::endl;
+        cout << "[Warn]: No se encontro un archivo" << endl;
         return NULL;
     }
 
-    fseek(archivo, 0, SEEK_END);
-    int totalRegistros = ftell(archivo) / sizeof(T);
-
-    T *archivoRam = new T[totalRegistros];
+    T *archivoRam = new T[largoArchivo];
 
     fseek(archivo, 0, SEEK_SET);
 
     int i = 0;
-    while (fread(&archivoRam[i], sizeof(T), 1, archivo) == 1)
-    {
-        i++;
-    }
+
+    fread(archivoRam, sizeof(T), largoArchivo, archivo);
 
     fclose(archivo);
 
@@ -219,14 +216,14 @@ T *leerArchivoGenerico(std::string nombreArchivo)
 }
 
 template <typename T>
-bool reemplazarDataArchivoGenerico(std::string nombreArchivo, T arr[], int len)
+bool reemplazarDataArchivoGenerico(string nombreArchivo, T arr[], int len)
 {
     // abro el archivo en modo escritura binaria
-    FILE *archivo = std::fopen(nombreArchivo.c_str(), "wb");
+    FILE *archivo = fopen(nombreArchivo.c_str(), "wb");
 
     if (archivo == NULL)
     {
-        std::cout << "[Error]: No se pudo abrir/crear el archivo para escritura." << std::endl;
+        cout << "[Error]: No se pudo abrir/crear el archivo para escritura." << endl;
         return false;
     }
 
@@ -283,5 +280,26 @@ void encriptado(char contrasenia[])
     for (int i = 0; contrasenia[i] != '\0'; i++)
     {
         contrasenia[i] += 5;
+    }
+}
+
+// mensajes en consola
+void mostradorDetexto(char type, string texto, bool debug = false)
+{
+    switch (type)
+    {
+    case 'd':
+        if (debug)
+            cout << "[DEBUG]" + texto << endl;
+        break;
+    case 'w':
+        cout << "[WARNING]" + texto << endl;
+        break;
+    case 'e':
+        cout << "[ERROR]" + texto << endl;
+        break;
+    default:
+        cout << texto << endl;
+        break;
     }
 }
