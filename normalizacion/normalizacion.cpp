@@ -12,42 +12,6 @@
 #define MAX_MOZOS 100
 #define MAX_COMANDAS 500
 
-// -- Por defecto / lectura original --
-struct ComandaHistorica
-{
-    char fecha[11];
-    char nombreMozo[50];
-    int codigoProducto;
-    int cantidad;
-    float comision;
-};
-
-struct Producto
-{
-    int codigo;
-    char descripcion[50];
-    float precio;
-    int stockActual;
-};
-
-// -- Propios del sistema (acorde al enunciado) --
-struct Mozo
-{
-    int codigo;
-    char nombreMozo[50];
-    char password[20];
-    float totalComision;
-};
-
-// Se remueve la fecha según especificación del TP
-struct Comanda
-{
-    int codMozo;
-    int codProd;
-    int cant;
-    float comision;
-};
-
 // Declaración de funciones
 int archivoMozos(Mozo mozos[], int lenMozos);
 void nombresAgrupados(ComandaHistorica array[], int len);

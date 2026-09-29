@@ -6,6 +6,43 @@
 
 using namespace std;
 
+// STRUCT
+//  -- Por defecto / lectura original --
+struct ComandaHistorica
+{
+    char fecha[11];
+    char nombreMozo[50];
+    int codigoProducto;
+    int cantidad;
+    float comision;
+};
+
+struct Producto
+{
+    int codigo;
+    char descripcion[50];
+    float precio;
+    int stockActual;
+};
+
+// -- Propios del sistema (acorde al enunciado) --
+struct Mozo
+{
+    int codigo;
+    char nombreMozo[50];
+    char password[20];
+    float totalComision;
+};
+
+// Se remueve la fecha según especificación del TP
+struct Comanda
+{
+    int codMozo;
+    int codProd;
+    int cant;
+    float comision;
+};
+
 // =========== APAREO ===========
 template <typename T1, typename T2, typename TOut, typename Comp>
 void apareoGenerico(T1 arrA[], int lenA, T2 arrB[], int lenB, TOut arrC[], int &lenC, Comp comp)
