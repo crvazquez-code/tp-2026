@@ -6,7 +6,10 @@
 //
 
 #include <stdio.h>
+#include <iomanip>
 #include "funciones/funciones.h"
+
+using namespace std;
 
 #define RUTA "./datos_de_uso/"
 #define MAX_MOZOS 100
@@ -15,7 +18,7 @@
 const char *buscarNombreMozo(Mozo mozos[], int lenMozos, int idMozo)
 {
     int indice = busquedaSecuencialGenerico(mozos, lenMozos, idMozo, [](int clave, const Mozo &m)
-                                             { return clave - m.idMozo; });
+                                            { return clave - m.idMozo; });
 
     if (indice == -1)
     {
@@ -28,32 +31,33 @@ const char *buscarNombreMozo(Mozo mozos[], int lenMozos, int idMozo)
 // Imprime la linea del resumen para un mozo.
 void mostrarResumenMozo(int idMozo, const char *nombre, int cantidadProductos, float comision)
 {
-    printf("%-4d %-20s %-12d $%.2f\n", idMozo, nombre, cantidadProductos, comision);
+    cout << left << setw(4) << idMozo << setw(20) << nombre << setw(12) << cantidadProductos << "$" << fixed << setprecision(2) << comision << endl;
 }
 
 int main()
 {
     int semana, mes;
 
-    printf("=== Resumen del cierre semanal ===\n");
-    printf("Ingrese el numero de semana: ");
-    scanf("%d", &semana);
-    printf("Ingrese el numero de mes: ");
-    scanf("%d", &mes);
+    mostradorDetexto('t', "=== Resumen del cierre semanal ===");
+    mostradorDetexto('t', "Ingrese el numero de semana: ");
+    cin >> semana;
+    mostradorDetexto('t', "Ingrese el numero de mes:");
+    cin >> mes;
 
     if (semana < 1 || semana > 5 || mes < 1 || mes > 12)
     {
-        printf("\n[ERROR] Semana o mes invalido.\n");
+        mostradorDetexto('e', "Semana o mes invalido.\n");
         return 1;
     }
 
-    char nombreArchivo[80];
-    sprintf(nombreArchivo, RUTA "comandas_semana_s%d-%02d.dat", semana, mes);
+    string nombreArchivo;
+    nombreArchivo = string(RUTA) + "comandas_semana_s" + to_string(semana) + "-" + to_string(mes) + ".dat";
+    mostradorDetexto('t', nombreArchivo);
 
-    FILE *f = fopen(nombreArchivo, "rb");
+    FILE *f = fopen(nombreArchivo.c_str(), "rb");
     if (f == nullptr)
     {
-        printf("\n[ERROR] No existe %s. Corre cierre.cpp primero.\n", nombreArchivo);
+        mostradorDetexto('e', "No existe el archivo del resumen. Corre cierre.cpp primero.");
         return 1;
     }
 
@@ -73,11 +77,11 @@ int main()
     }
     else
     {
-        printf("[WARN] No se encontro mozos.dat, el resumen va a mostrar solo el numero de mozo.\n");
+        mostradorDetexto('w', "No se encontro mozos.dat, el resumen va a mostrar solo el numero de mozo.");
     }
 
-    printf("\n%-4s %-20s %-12s %s\n", "ID", "Mozo", "Productos", "Comision");
-    printf("-----------------------------------------------\n");
+    cout << left << setw(4) << "ID" << setw(20) << "Mozo" << setw(12) << "Productos" << "Comision" << endl;
+    cout << "-----------------------------------------------" << endl;
 
     // Corte de control por idMozo: la planilla semanal ya viene ordenada por mozo,
     // asi que no hace falta cargarla entera en memoria ni volver a ordenarla.
@@ -96,7 +100,7 @@ int main()
         {
             // Cambio de mozo: cerramos el corte anterior y lo mostramos.
             mostrarResumenMozo(idMozoActual, buscarNombreMozo(mozos, lenMozos, idMozoActual),
-                                cantidadMozoActual, comisionMozoActual);
+                               cantidadMozoActual, comisionMozoActual);
             cantidadMozoActual = 0;
             comisionMozoActual = 0.0f;
         }
@@ -117,16 +121,16 @@ int main()
     if (hayMozoAbierto)
     {
         mostrarResumenMozo(idMozoActual, buscarNombreMozo(mozos, lenMozos, idMozoActual),
-                            cantidadMozoActual, comisionMozoActual);
+                           cantidadMozoActual, comisionMozoActual);
     }
     else
     {
-        printf("(la planilla semanal esta vacia)\n");
+        mostradorDetexto('t', "(la planilla semanal esta vacia)");
     }
 
-    printf("-----------------------------------------------\n");
-    printf("TOTAL de productos vendidos por el buffet: %d\n", totalProductosBuffet);
-    printf("TOTAL de comisiones a pagar: $%.2f\n", totalComisionBuffet);
+    cout << "-----------------------------------------------" << endl;
+    cout << "TOTAL de productos vendidos por el buffet: " << totalProductosBuffet << endl;
+    cout << "TOTAL de comisiones a pagar: $" << fixed << setprecision(2) << totalComisionBuffet << endl;
 
     return 0;
 }
