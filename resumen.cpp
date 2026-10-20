@@ -43,15 +43,20 @@ int main()
     cin >> semana;
     mostradorDetexto('t', "Ingrese el numero de mes:");
     cin >> mes;
+    string mesTexto = to_string(mes);
 
     if (semana < 1 || semana > 5 || mes < 1 || mes > 12)
     {
         mostradorDetexto('e', "Semana o mes invalido.\n");
         return 1;
     }
+    if (mes < 10)
+    {
+        mesTexto = "0" + mesTexto;
+    }
 
     string nombreArchivo;
-    nombreArchivo = string(RUTA) + "comandas_semana_s" + to_string(semana) + "-" + to_string(mes) + ".dat";
+    nombreArchivo = string(RUTA) + "comandas_semana_s" + to_string(semana) + "-" + mesTexto + ".dat";
     mostradorDetexto('t', nombreArchivo);
 
     FILE *f = fopen(nombreArchivo.c_str(), "rb");

@@ -1,13 +1,29 @@
 #include <iostream>
 #include <cstdio>
 #include <cerrno>
+#include <cstring>
 #include "funciones/funciones.h"
 
 #define RUTA "./datos_de_uso/"
+using namespace std;
 
 void nombrePlanillaDia(int dia, int mes, int anio, char nombre[])
 {
-    sprintf(nombre, RUTA "comandas_%02d-%02d-%04d.dat", dia, mes, anio);
+    string diaTexto = to_string(dia);
+    string mesTexto = to_string(mes);
+    string anioTexto = to_string(anio);
+    if (dia < 10)
+        diaTexto = "0" + diaTexto;
+
+    if (mes < 10)
+        mesTexto = "0" + mesTexto;
+
+    while (anioTexto.length() < 4)
+        anioTexto = "0" + anioTexto;
+
+    string nombreCompleto = string(RUTA) + "comandas_" + diaTexto + "-" + mesTexto + "-" + anioTexto + ".dat";
+
+    strcpy(nombre, nombreCompleto.c_str());
 }
 
 int diasDelMes(int mes, int anio)
@@ -33,7 +49,7 @@ int cargarDia(const char nombreArchivo[], Comanda *&comandas, int &len)
         {
             return 0; // En caso de que no se encuentre
         }
-        cout << "[ERROR] No se pudo abrir " << nombreArchivo << ".\n";
+        mostradorDetexto('e', "No se pudo abrir " + string(nombreArchivo) + ".");
         return -1;
     }
 
@@ -70,7 +86,8 @@ int cargarDia(const char nombreArchivo[], Comanda *&comandas, int &len)
 
     if (!valido || errorLectura || bytesLeidos != 0)
     {
-        cout << "[ERROR] No se pudo leer " << nombreArchivo << " o no esta ordenado por mozo.\n";
+        mostradorDetexto('e', "No se pudo leer" + string(nombreArchivo) + ".");
+
         delete[] comandas;
         comandas = nullptr;
         len = 0;
@@ -84,7 +101,7 @@ bool guardarSemana(const char nombreArchivo[], const Comanda comandas[], int len
     FILE *archivo = fopen(nombreArchivo, "wb");
     if (archivo == nullptr)
     {
-        cout << "[ERROR] No se pudo crear " << nombreArchivo << ".\n";
+        mostradorDetexto('e', "No se pudo crear" + string(nombreArchivo) + ".");
         return false;
     }
 
@@ -99,7 +116,7 @@ bool guardarSemana(const char nombreArchivo[], const Comanda comandas[], int len
     }
     if (!guardado)
     {
-        cout << "[ERROR] No se pudo completar la escritura de " << nombreArchivo << ".\n";
+        mostradorDetexto('e', "No se pudo completar la escritura de " + string(nombreArchivo) + ".");
     }
     return guardado;
 }
@@ -107,25 +124,28 @@ bool guardarSemana(const char nombreArchivo[], const Comanda comandas[], int len
 int main()
 {
     int semana, mes, anio;
-    cout << "=== Cierre semanal ===\n";
-    cout << "Semanas: 1 = dias 1-7, 2 = 8-14, 3 = 15-21, 4 = 22-28, 5 = 29-fin.\n";
-    cout << "Ingrese el numero de semana: ";
+    mostradorDetexto('t', "=== Cierre semanal ===");
+    mostradorDetexto('t', "Semanas: 1 = dias 1-7, 2 = 8-14, 3 = 15-21, 4 = 22-28, 5 = 29-fin. ");
+    mostradorDetexto('t', "Ingrese el numero de semana: ");
+
     if (!(cin >> semana))
     {
-        cout << "[ERROR] Semana invalida.\n";
+        mostradorDetexto('e', "Semana invalida.");
         return 1;
     }
-    cout << "Ingrese el numero de mes: ";
+
+    mostradorDetexto('t', "Ingrese el numero de mes: ");
     if (!(cin >> mes))
     {
-        cout << "[ERROR] Mes invalido.\n";
+        mostradorDetexto('e', "Mes invalido.");
         return 1;
     }
-    cout << "Ingrese el año: ";
+
+    mostradorDetexto('t', "Ingrese el año: ");
     if (!(cin >> anio) || semana < 1 || semana > 5 ||
         mes < 1 || mes > 12 || anio < 1 || anio > 9999)
     {
-        cout << "[ERROR] Semana, mes o año invalido.\n";
+        mostradorDetexto('e', " Semana, mes o año invalido.");
         return 1;
     }
 
@@ -138,7 +158,7 @@ int main()
     }
     if (primerDia > ultimoDia)
     {
-        cout << "[ERROR] Esa semana no tiene dias en el mes elegido.\n";
+        mostradorDetexto('e', "Esa semana no tiene dias en el mes elegido.");
         return 1;
     }
 
@@ -179,21 +199,33 @@ int main()
 
     if (diasEncontrados == 0)
     {
-        cout << "[ERROR] No se encontraron planillas para esa semana.\n";
+        mostradorDetexto('e', "No se encontraron planillas para esa semana.");
         delete[] comandasSemana;
         return 1;
     }
 
-    char nombreSemana[80];
-    sprintf(nombreSemana, RUTA "comandas_semana_s%d-%02d.dat", semana, mes);
-    bool guardado = guardarSemana(nombreSemana, comandasSemana, lenSemana);
+    string mesTexto = to_string(mes);
+    if (mes < 10)
+    {
+        mesTexto = "0" + mesTexto;
+    }
+
+    string nombreSemana = string(RUTA) + "comandas_semana_s" +
+                          to_string(semana) + "-" + mesTexto + ".dat";
+
+    bool guardado = guardarSemana(nombreSemana.c_str(), comandasSemana, lenSemana);
     delete[] comandasSemana;
+
+    if (!guardado)
+    {
+        return 1;
+    }
     if (!guardado)
     {
         return 1;
     }
 
-    cout << "Cierre generado: " << nombreSemana << '\n';
-    cout << "Dias incluidos: " << diasEncontrados << ". Comandas: " << lenSemana << ".\n";
+    mostradorDetexto('t', "Cierre generado: " + string(nombreSemana));
+    mostradorDetexto('t', "Dias incluidos: " + to_string(diasEncontrados) + ". Comandas: " + to_string(lenSemana) + ".");
     return 0;
 }
