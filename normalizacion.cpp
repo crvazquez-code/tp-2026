@@ -12,6 +12,8 @@
 #define MAX_MOZOS 100
 #define MAX_COMANDAS 500
 
+using namespace std;
+
 // Declaración de funciones
 int archivoMozos(Mozo mozos[], int lenMozos);
 void nombresAgrupados(ComandaHistorica array[], int len);
@@ -32,7 +34,7 @@ int main()
     int lenComandas = llenarArrayComandas(comandas);
     if (lenComandas < 0)
     {
-        printf("\n Fallo al leer comandas_historicas.dat \n");
+        mostradorDetexto('t', "Fallo al leer comandas_historicas.dat");
         return 1;
     }
 
@@ -42,7 +44,7 @@ int main()
 
     if (archivoMozos(mozos, lenMozos) < 0)
     {
-        printf("\n Fallo al escribir mozos.dat \n");
+        mostradorDetexto('t', "Fallo al escribir mozos.dat");
         return 1;
     }
 
@@ -54,7 +56,7 @@ int main()
 
     if (archivosComandas(comandas, lenComandas, mozos, lenMozos) < 0)
     {
-        printf("\n Fallo al escribir los archivos de comandas por dia \n");
+        mostradorDetexto('t', " Fallo al escribir los archivos de comandas por dia ");
         return 1;
     }
 
@@ -63,13 +65,13 @@ int main()
 
     if (resultado < 0)
     {
-        printf("\n No se puede actualizar inventario.dat, no se pudo abrir el archivo \n");
+        mostradorDetexto('t', " No se puede actualizar inventario.dat, no se pudo abrir el archivo ");
         return 1;
     }
 
     if (resultado == 0)
     {
-        printf("\n No se puede actualizar inventario.dat debido a que una comanda es mayor al inventario disponible. \n");
+        mostradorDetexto('t', " No se puede actualizar inventario.dat debido a que una comanda es mayor al inventario disponible. ");
         return 1;
     }
 
@@ -171,7 +173,7 @@ void arrayMozos(ComandaHistorica array[], int len, Mozo arrayMozo[], int &lenMoz
         }
 
         // 3. Armar password en texto plano (4 letras + promedio)
-        sprintf(arrayMozo[lenMozos].password, "%s%d", subNombre, promedioComision);
+        mostradorDetexto('t', string(arrayMozo[lenMozos].password) + " " + string(subNombre) + " " + to_string(promedioComision));
 
         // 4. Aplicar la función de encriptación
         encriptado(arrayMozo[lenMozos].password);
@@ -233,7 +235,7 @@ int archivosComandas(ComandaHistorica arrayHistorica[], int lenComandas, Mozo mo
         int lenDia = 0;
 
         char nombre[60];
-        sprintf(nombre, RUTA_OUTPUT "comandas_%s.dat", controlFecha);
+        strcpy(nombre, (string(RUTA_OUTPUT) + "comandas_" + controlFecha + ".dat").c_str());
 
         FILE *f = fopen(nombre, "wb");
 
@@ -317,8 +319,7 @@ int prunarInventario(Comanda comandas[], int lenComandas)
             }
             else
             {
-                printf("\n[ERROR] El producto %d (%s) requiere %d unidades pero solo hay %d en stock.\n",
-                       prod.codigo, prod.descripcion, totalVendido, prod.stockActual);
+                mostradorDetexto('e', "El producto" + to_string(prod.codigo) + " (" + string(prod.descripcion) + ") requiere " + to_string(totalVendido) + " unidades pero solo hay " + to_string(prod.stockActual) + " en stock.");
 
                 fclose(fEntrada);
                 fclose(fSalida);

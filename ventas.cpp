@@ -45,7 +45,7 @@ string SOLICITAR_PASSWORD = "por favor escribe tu contraseña (maximo 20 caracte
 string OPCION_INCORRECTA = "Opcion incorrecta por favor elija una opcion del menu";
 string DESLOGUEANDO_MOZO = "volviendo al menu principal";
 
-float IMPUESTO = 0.01; // 21% de impuesto
+float IMPUESTO = 0.1; // 10% de comision
 
 // valida Formato YYYY-MM-DD
 bool validarFecha(char fecha[])
@@ -54,7 +54,6 @@ bool validarFecha(char fecha[])
     for (int i = 0; i < 10; i++)
     {
 
-        // debug cout << fecha[i] << "_" << i << endl;
         if (i == 2 || i == 5)
         {
             if (fecha[i] != '-')
@@ -272,7 +271,11 @@ int main()
 
                     mostradorDetexto('t', "ingrese la cantidad de unidades (max= " + to_string(producto.stockActual) + ")");
                     cin >> nuevaComanda.cantidad;
-                    if (nuevaComanda.cantidad > producto.stockActual)
+                    if (nuevaComanda.cantidad < 0)
+                    {
+                        mostradorDetexto('t', "la cantidad no puede ser 0 o negativa");
+                    }
+                    else if (nuevaComanda.cantidad > producto.stockActual)
                     {
                         mostradorDetexto('t', "exediste la cantidad de productos en stock");
                     }

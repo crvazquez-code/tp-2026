@@ -255,6 +255,7 @@ T *leerArchivoGenerico(string nombreArchivo, int largoArchivo)
 template <typename T>
 bool reemplazarDataArchivoGenerico(string nombreArchivo, T arr[], int len)
 {
+    const size_t cantidadEsperada = len;
     // abro el archivo en modo escritura binaria
     FILE *archivo = fopen(nombreArchivo.c_str(), "wb");
 
@@ -265,12 +266,12 @@ bool reemplazarDataArchivoGenerico(string nombreArchivo, T arr[], int len)
     }
 
     // Escribe todo el arreglo de una sola vez
-    size_t elementosEscritos = fwrite(arr, sizeof(T), len, archivo);
+    size_t elementosEscritos = fwrite(arr, sizeof(T), cantidadEsperada, archivo);
 
     fclose(archivo);
 
     // Verifica que se hayan escrito todos los elementos
-    return elementosEscritos == static_cast<size_t>(len);
+    return elementosEscritos == cantidadEsperada;
 }
 
 // ===== ENCRIPTACION ====
