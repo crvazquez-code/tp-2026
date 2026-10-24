@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <sstream>
 #include "funciones/funciones.h"
 
 #define RUTA_INPUT "./datos/"
@@ -173,7 +174,11 @@ void arrayMozos(ComandaHistorica array[], int len, Mozo arrayMozo[], int &lenMoz
         }
 
         // 3. Armar password en texto plano (4 letras + promedio)
-        mostradorDetexto('t', string(arrayMozo[lenMozos].password) + " " + string(subNombre) + " " + to_string(promedioComision));
+        stringstream pass;
+        pass << subNombre << "_" << promedioComision;
+        strcpy(arrayMozo[lenMozos].password, pass.str().c_str());
+
+        mostradorDetexto('t', string(arrayMozo[lenMozos].password));
 
         // 4. Aplicar la función de encriptación
         encriptado(arrayMozo[lenMozos].password);
