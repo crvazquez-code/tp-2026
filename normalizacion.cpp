@@ -285,31 +285,23 @@ int archivosComandas(ComandaHistorica arrayHistorica[], int lenComandas, Mozo mo
 int prunarInventario(Comanda comandas[], int lenComandas)
 {
     // 1. Leemos el inventario original desde la carpeta de datos (solo lectura)
-    FILE *fEntrada = fopen(RUTA_INPUT "inventario.dat", "rb");
-    if (fEntrada == nullptr)
+    FILE *f = fopen(RUTA_OUTPUT "inventario.dat", "rb+");
+    if (f == nullptr)
     {
         return -1; // No se pudo abrir ../datos/inventario.dat
-    }
-
-    // 2. Creamos el nuevo inventario actualizado en datos_de_uso
-    FILE *fSalida = fopen(RUTA_OUTPUT "inventario.dat", "wb");
-    if (fSalida == nullptr)
-    {
-        fclose(fEntrada);
-        return -1; // No se pudo crear ../datos_de_uso/inventario.dat
     }
 
     Producto prod;
 
     // 3. Recorremos producto por producto el inventario base
-    while (fread(&prod, sizeof(Producto), 1, fEntrada) == 1)
+    while (fread(&prod, sizeof(Producto), 1, f) == 1)
     {
         int totalVendido = 0;
 
         // Sumamos todas las ventas asociadas a este producto
         for (int i = 0; i < lenComandas; i++)
         {
-            if (prod.codigo == comandas[i].idMozo)
+            if (prod.codigo == comandas[i].codigoProducto)
             {
                 totalVendido += comandas[i].cantidad;
             }
@@ -321,22 +313,22 @@ int prunarInventario(Comanda comandas[], int lenComandas)
             if (prod.stockActual >= totalVendido)
             {
                 prod.stockActual -= totalVendido;
+
+                // 4. Escribimos el producto (con stock restado o intacto) en datos_de_uso
+                fseek(f, -(long)sizeof(Producto), SEEK_CUR);
+                fwrite(&prod, sizeof(Producto), 1, f);
+                fseek(f, 0, SEEK_CUR);
             }
             else
             {
                 mostradorDetexto('e', "El producto" + to_string(prod.codigo) + " (" + string(prod.descripcion) + ") requiere " + to_string(totalVendido) + " unidades pero solo hay " + to_string(prod.stockActual) + " en stock.");
 
-                fclose(fEntrada);
-                fclose(fSalida);
+                fclose(f);
                 return 0; // Se cancela la generación por falta de stock
             }
         }
-
-        // 4. Escribimos el producto (con stock restado o intacto) en datos_de_uso
-        fwrite(&prod, sizeof(Producto), 1, fSalida);
     }
 
-    fclose(fEntrada);
-    fclose(fSalida);
+    fclose(f);
     return 1; // Proceso completado exitosamente
 }
