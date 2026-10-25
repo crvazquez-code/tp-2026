@@ -284,11 +284,11 @@ int archivosComandas(ComandaHistorica arrayHistorica[], int lenComandas, Mozo mo
 
 int prunarInventario(Comanda comandas[], int lenComandas)
 {
-    // 1. Leemos el inventario original desde la carpeta de datos (solo lectura)
+    // 1. Leemos el inventario desde la carpeta datos_de_uso (lectura y escritura)
     FILE *f = fopen(RUTA_OUTPUT "inventario.dat", "rb+");
     if (f == nullptr)
     {
-        return -1; // No se pudo abrir ../datos/inventario.dat
+        return -1; // No se pudo abrir ./datos_de_uso/inventario.dat
     }
 
     Producto prod;
