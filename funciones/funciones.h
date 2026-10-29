@@ -43,6 +43,27 @@ struct Comanda
     float comision;
 };
 
+// mensajes en consola
+void mostradorDetexto(char type, string texto, bool debug = false)
+{
+    switch (type)
+    {
+    case 'd':
+        if (debug)
+            cout << "[DEBUG]" + texto << endl;
+        break;
+    case 'w':
+        cout << "[WARNING]" + texto << endl;
+        break;
+    case 'e':
+        cout << "[ERROR]" + texto << endl;
+        break;
+    default:
+        cout << texto << endl;
+        break;
+    }
+}
+
 // =========== APAREO ===========
 template <typename T1, typename T2, typename TOut, typename Comp>
 void apareoGenerico(T1 arrA[], int lenA, T2 arrB[], int lenB, TOut arrC[], int &lenC, Comp comp)
@@ -73,51 +94,7 @@ void apareoGenerico(T1 arrA[], int lenA, T2 arrB[], int lenB, TOut arrC[], int &
     }
 }
 
-// ======= CORTE CONTROL =======
-template <typename T, typename ClaveCorte, typename ValProcRegistro, typename ProcesarReg, typename OperacionFin>
-void corteControlGenerico(T arr[], int lenA, ClaveCorte claveCorte, ValProcRegistro valProcRegistro, ProcesarReg procRegistro, OperacionFin operacionFinCorte)
-{
-    int i = 0;
-
-    while (i < lenA)
-    {
-        int corte = claveCorte(i, arr, lenA);
-        auto estructura = valProcRegistro(arr, i, corte);
-        int inicioCorte = i;
-
-        while (i < lenA && corte == claveCorte(i, arr, lenA))
-        {
-            procRegistro(estructura, arr[i]);
-            i++;
-        }
-        operacionFinCorte(arr, inicioCorte, i);
-    }
-}
-
 // ====== ORDENAMIENTO ======
-template <typename T, typename ClaveOrden>
-void ordSeleccionGenerico(T arr[], int len, ClaveOrden claveOrden)
-{
-    for (int i = 0; i < len; i++)
-    {
-        auto claveMin = claveOrden(arr[i]);
-        int posMin = i;
-        for (int j = i + 1; j < len; j++)
-        {
-            if (claveOrden(arr[j]) < claveMin)
-            {
-                claveMin = claveOrden(arr[j]);
-                posMin = j;
-            }
-        }
-        if (posMin != i)
-        {
-            auto temp = arr[i];
-            arr[i] = arr[posMin];
-            arr[posMin] = temp;
-        }
-    }
-}
 
 template <typename T, typename ClaveOrden>
 void ordBurbujaGenerico(T arr[], int len, ClaveOrden claveOrden)
@@ -136,22 +113,6 @@ void ordBurbujaGenerico(T arr[], int len, ClaveOrden claveOrden)
     }
 }
 
-template <typename T, typename ClaveOrden>
-void ordInsercionGenerico(T arr[], int len, ClaveOrden claveOrden)
-{
-    for (int i = 1; i < len; i++)
-    {
-        auto key = arr[i];
-        int j = i - 1;
-        while (j >= 0 && claveOrden(arr[j]) > claveOrden(key))
-        {
-            arr[j + 1] = arr[j];
-            j--;
-        }
-        arr[j + 1] = key;
-    }
-}
-
 // ====== BUSQUEDA ======
 
 template <typename T, typename ClaveBusqueda, typename Comparador>
@@ -164,49 +125,6 @@ int busquedaSecuencialGenerico(T arr[], int len, ClaveBusqueda claveBusqueda, Co
             return i;
         }
     }
-    return -1;
-}
-
-template <typename T, typename ClaveBusqueda, typename Comparador>
-
-int busquedaBinariaGenerico(T arr[], int len, ClaveBusqueda claveBusqueda, Comparador comparador)
-
-{
-
-    int left = 0;
-
-    int right = len - 1;
-
-    while (left <= right)
-
-    {
-
-        int mid = left + (right - left) / 2;
-
-        int compResult = comparador(claveBusqueda, arr[mid]);
-
-        if (compResult == 0)
-
-        {
-
-            return mid;
-        }
-
-        else if (compResult < 0)
-
-        {
-
-            right = mid - 1;
-        }
-
-        else
-
-        {
-
-            left = mid + 1;
-        }
-    }
-
     return -1;
 }
 
@@ -226,6 +144,75 @@ long obtenerCantidadRegistros(string nombreArchivo)
     fclose(f);
 
     return tamanoTotal / sizeof(T);
+}
+
+template <typename T>
+bool leerRegistroPorIndice(string nombreArchivo, int indice, T &registroDestino)
+{
+    FILE *f = fopen(nombreArchivo.c_str(), "rb");
+    if (f == NULL)
+    {
+        return false;
+    }
+
+    fseek(f, indice * sizeof(T), SEEK_SET);
+    size_t leidos = fread(&registroDestino, sizeof(T), 1, f);
+    fclose(f);
+
+    return (leidos == 1);
+}
+
+template <typename T>
+bool modificarRegistro(string nombreArchivo, int indice, const T &nuevoRegistro)
+{
+    // "rb+" abre el archivo para lectura y escritura binaria sin borrar su contenido previo
+    FILE *f = fopen(nombreArchivo.c_str(), "rb+");
+    if (f == NULL)
+    {
+        mostradorDetexto('e', "No se pudo abrir el archivo para edición");
+        return false;
+    }
+
+    // Mover el cursor hasta la posición exacta del registro
+    fseek(f, indice * sizeof(T), SEEK_SET);
+
+    // Escribir el registro actualizado sobrescribiendo el anterior
+    fwrite(&nuevoRegistro, sizeof(T), 1, f);
+
+    fclose(f);
+    return true;
+}
+
+template <typename T, typename Comparador>
+long busquedaBinariaArchivoGenerica(string nombre, int clave, T &registro, Comparador comparar)
+{
+    FILE *f = fopen(nombre.c_str(), "rb");
+    if (f == NULL)
+        return -1;
+
+    fseek(f, 0, SEEK_END);
+    long n = ftell(f) / sizeof(T);
+    long pri = 0, ult = n - 1, pos = -1;
+
+    while (pri <= ult && pos == -1)
+    {
+        long med = pri + (ult - pri) / 2;
+        fseek(f, med * sizeof(T), SEEK_SET);
+
+        if (fread(&registro, sizeof(T), 1, f) != 1)
+            break;
+
+        int resultado = comparar(clave, registro);
+        if (resultado == 0)
+            pos = med;
+        else if (resultado < 0)
+            ult = med - 1;
+        else
+            pri = med + 1;
+    }
+
+    fclose(f);
+    return pos;
 }
 
 template <typename T>
@@ -318,26 +305,5 @@ void encriptado(char contrasenia[])
     for (int i = 0; contrasenia[i] != '\0'; i++)
     {
         contrasenia[i] += 5;
-    }
-}
-
-// mensajes en consola
-void mostradorDetexto(char type, string texto, bool debug = false)
-{
-    switch (type)
-    {
-    case 'd':
-        if (debug)
-            cout << "[DEBUG]" + texto << endl;
-        break;
-    case 'w':
-        cout << "[WARNING]" + texto << endl;
-        break;
-    case 'e':
-        cout << "[ERROR]" + texto << endl;
-        break;
-    default:
-        cout << texto << endl;
-        break;
     }
 }

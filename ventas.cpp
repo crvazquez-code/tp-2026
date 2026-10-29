@@ -137,12 +137,13 @@ Comanda *cargarComandaNueva(Comanda *comandasDelDia, long &len, Comanda nuevaCom
     return nuevoArreglo;
 }
 
-int buscarProducto(Producto inventario[], int len, int codigoProducto)
+int buscarProducto(int len, int codigoProducto)
 {
     mostradorDetexto('d', "buscando un Producto", DEBUG);
 
-    int indice = busquedaBinariaGenerico(inventario, len, codigoProducto, [](int clave, const Producto &p)
-                                         { return clave - p.codigo; });
+    Producto producto;
+    int indice = busquedaBinariaArchivoGenerica(DIRECTORIO + "/inventario.dat", codigoProducto, producto, [](int clave, const Producto &p)
+                                                { return clave - p.codigo; });
     if (indice == -1)
     {
         mostradorDetexto('w', "Producto no encontrado");
@@ -161,39 +162,24 @@ float calcularComision(Producto &producto, int cantidad)
     return valorTotal * IMPUESTO;
 }
 
-void ReescribirComandasDias(Comanda *comandasDelDia, int len, char fecha[])
-{
-    string direccionArchivo = DIRECTORIO + "commandas_" + fecha + ".dat";
-
-    bool guardado = reemplazarDataArchivoGenerico(direccionArchivo, comandasDelDia, len);
-    if (!guardado)
-    {
-        mostradorDetexto('e', "fallo al guardar las comandas del dia.");
-    }
-    else
-    {
-        mostradorDetexto('t', "Comandas del dia guardadas exitosamente.");
-    }
-}
-
 int main()
 {
     mostradorDetexto('t', TEXTO_DE_BIENVENIDA);
 
     // inicializo archivos en memoria con los que voy a trabajar
     mostradorDetexto('d', "Cargando variables iniciales", DEBUG);
+    string rutaInventario = DIRECTORIO + "inventario.dat";
     char fechaDelDia[11];
     char nombreMozo[50];
     char password[20];
     int salirMenu = 0, opcionesDelMenuPrincipal = 0, opcionesDelMenuMozo = 0, mozoLogueado = 0, indMozo = -1;
 
-    long largoInventario = obtenerCantidadRegistros<Producto>(DIRECTORIO + "inventario.dat");
+    long largoInventario = obtenerCantidadRegistros<Producto>(rutaInventario);
     if (largoInventario == -1)
     {
         mostradorDetexto('e', "!Ups no encontre productos que vender");
         return 1;
     }
-    Producto *inventario = leerArchivoGenerico<Producto>(DIRECTORIO + "inventario.dat", largoInventario);
 
     int largoMozos = obtenerCantidadRegistros<Mozo>(DIRECTORIO + "mozos.dat");
 
@@ -232,16 +218,15 @@ int main()
     string rutaComandas = DIRECTORIO + "comandas_" + string(fechaDelDia) + ".dat";
     mostradorDetexto('d', "Ruta a buscar: " + rutaComandas, DEBUG);
     long largoDeComandas = obtenerCantidadRegistros<Comanda>(rutaComandas);
-    if (largoDeComandas != -1)
+    if (largoDeComandas == -1)
+    {
+        largoDeComandas = 0;
+    }
+    else
     {
         Comanda *punteroAux = comandasDelDia;
         comandasDelDia = traerComandaDelDia(fechaDelDia, largoDeComandas);
         delete[] punteroAux;
-        ;
-    }
-    else
-    {
-        largoDeComandas = 0;
     }
 
     mostradorDetexto('d', "comanda en Memoria largo =" + to_string(largoDeComandas), DEBUG);
@@ -264,30 +249,36 @@ int main()
                 mostradorDetexto('t', "Ingrese el codigo del producto");
                 cin >> nuevaComanda.codigoProducto;
 
-                int indiceProducto = buscarProducto(inventario, largoInventario, nuevaComanda.codigoProducto);
+                int indiceProducto = buscarProducto(largoInventario, nuevaComanda.codigoProducto);
                 if (indiceProducto != -1)
                 {
-                    Producto producto = inventario[indiceProducto];
-
-                    mostradorDetexto('t', "ingrese la cantidad de unidades (max= " + to_string(producto.stockActual) + ")");
+                    Producto prod;
+                    leerRegistroPorIndice(rutaInventario, indiceProducto, prod);
+                    mostradorDetexto('t', "ingrese la cantidad de unidades (max= " + to_string(prod.stockActual) + ")");
                     cin >> nuevaComanda.cantidad;
                     if (nuevaComanda.cantidad < 0)
                     {
                         mostradorDetexto('t', "la cantidad no puede ser 0 o negativa");
                     }
-                    else if (nuevaComanda.cantidad > producto.stockActual)
+                    else if (nuevaComanda.cantidad > prod.stockActual)
                     {
                         mostradorDetexto('t', "exediste la cantidad de productos en stock");
                     }
                     else
                     {
-                        float comision = calcularComision(producto, nuevaComanda.cantidad);
+                        float comision = calcularComision(prod, nuevaComanda.cantidad);
                         nuevaComanda.comision = comision;
                         mozos[indMozo].totalComision += comision;
-                        inventario[indiceProducto] = producto;
                         comandasDelDia = cargarComandaNueva(comandasDelDia, largoDeComandas, nuevaComanda);
-
-                        mostradorDetexto('t', "producto cargado correctamente");
+                        // actualizo comanda.dat y inventario.dat
+                        if (modificarRegistro<Producto>(rutaInventario, indiceProducto, prod) && reemplazarDataArchivoGenerico<Comanda>(rutaComandas, comandasDelDia, largoDeComandas))
+                        {
+                            mostradorDetexto('t', "producto cargado correctamente");
+                        }
+                        else
+                        {
+                            mostradorDetexto('e', "ocurrio un error al cargar comanda o inventario");
+                        }
                     }
                 }
                 else
@@ -346,10 +337,6 @@ int main()
             }
         }
     }
-
-    // modificar archivos
-    reemplazarDataArchivoGenerico<Comanda>(DIRECTORIO + "comandas_" + string(fechaDelDia) + ".dat", comandasDelDia, largoDeComandas);
-    reemplazarDataArchivoGenerico<Producto>(DIRECTORIO + "inventario.dat", inventario, largoInventario);
 
     return 0;
 }
