@@ -12,6 +12,7 @@
 
 #define MAX_MOZOS 100
 #define MAX_COMANDAS 500
+#define DEBUG false
 
 using namespace std;
 
@@ -174,11 +175,14 @@ void arrayMozos(ComandaHistorica array[], int len, Mozo arrayMozo[], int &lenMoz
         }
 
         // 3. Armar password en texto plano (4 letras + promedio)
-        stringstream pass;
-        pass << subNombre << "_" << promedioComision;
-        strcpy(arrayMozo[lenMozos].password, pass.str().c_str());
+        char textoPromedio[12];
+        intAChar(promedioComision, textoPromedio);
 
-        mostradorDetexto('t', string(arrayMozo[lenMozos].password));
+        strcpy(arrayMozo[lenMozos].password, subNombre);
+        strcat(arrayMozo[lenMozos].password, "_");
+        strcat(arrayMozo[lenMozos].password, textoPromedio);
+
+        mostradorDetexto('d', string(arrayMozo[lenMozos].password), DEBUG);
 
         // 4. Aplicar la función de encriptación
         encriptado(arrayMozo[lenMozos].password);
@@ -284,21 +288,21 @@ int archivosComandas(ComandaHistorica arrayHistorica[], int lenComandas, Mozo mo
 
 int prunarInventario(Comanda comandas[], int lenComandas)
 {
-    // 1. Leemos el inventario desde la carpeta datos_de_uso (lectura y escritura)
-    FILE *f = fopen(RUTA_OUTPUT "inventario.dat", "rb+");
+    FILE *f = fopen(RUTA_INPUT "inventario.dat", "rb");
     if (f == nullptr)
     {
-        return -1; // No se pudo abrir ./datos_de_uso/inventario.dat
+        return -1;
     }
+    FILE *j = fopen(RUTA_OUTPUT "inventario.dat", "wb");
 
     Producto prod;
 
-    // 3. Recorremos producto por producto el inventario base
+    // fread lee un producto y AVANZA automáticamente el puntero de 'f' al siguiente
     while (fread(&prod, sizeof(Producto), 1, f) == 1)
     {
         int totalVendido = 0;
 
-        // Sumamos todas las ventas asociadas a este producto
+        // Calculamos el total vendido de este producto actual
         for (int i = 0; i < lenComandas; i++)
         {
             if (prod.codigo == comandas[i].codigoProducto)
@@ -309,26 +313,23 @@ int prunarInventario(Comanda comandas[], int lenComandas)
 
         if (totalVendido > 0)
         {
-            // Validamos que el stock actual alcance
             if (prod.stockActual >= totalVendido)
             {
-                prod.stockActual -= totalVendido;
-
-                // 4. Escribimos el producto (con stock restado o intacto) en datos_de_uso
-                fseek(f, -(long)sizeof(Producto), SEEK_CUR);
-                fwrite(&prod, sizeof(Producto), 1, f);
-                fseek(f, 0, SEEK_CUR);
+                prod.stockActual -= totalVendido; // Modificamos la variable en memoria
             }
             else
             {
-                mostradorDetexto('e', "El producto" + to_string(prod.codigo) + " (" + string(prod.descripcion) + ") requiere " + to_string(totalVendido) + " unidades pero solo hay " + to_string(prod.stockActual) + " en stock.");
-
+                mostradorDetexto('e', "El producto " + to_string(prod.codigo) + " requiere " + to_string(totalVendido) + " unidades pero hay " + to_string(prod.stockActual));
                 fclose(f);
-                return 0; // Se cancela la generación por falta de stock
+                fclose(j);
+                return 0;
             }
         }
+
+        fwrite(&prod, sizeof(Producto), 1, j);
     }
 
     fclose(f);
-    return 1; // Proceso completado exitosamente
+    fclose(j);
+    return 1;
 }
